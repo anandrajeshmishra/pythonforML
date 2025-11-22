@@ -19,23 +19,41 @@ def sanskrit_interpreter(code):
 
     variables = {}
     lines = code.split('\n')
-    i = 0
-    while i < len(lines):
-        line = lines[i].strip()
-        executed = False
+
+    # First pass: Handle variable assignments
+    for line in lines:
+        line = line.strip()
         for pattern, action in patterns.items():
             match = re.match(pattern, line)
             if match:
                 action(match)
-                executed = True
-                break
+
+    # Function to manually evaluate condition with replaced variables
+    def evaluate_condition(condition_str):
+        # Replace Sanskrit variables with their values in the condition string
+        condition_str = replace_sanskrit_numerals(condition_str)
+        for var, value in variables.items():
+            condition_str = condition_str.replace(var, str(value))  # Replace with actual value
+        try:
+            # Evaluate the modified condition string
+            if condition_str:
+                return eval(condition_str)
+            return False
+        except Exception as e:
+            print(f"Error in condition evaluation: {e}")
+            return False
+
+    # Second pass: Evaluate conditions
+    i = 0
+    while i < len(lines):
+        line = lines[i].strip()
+        executed = False
         if line.startswith("यदि"):
             condition = re.match(r'यदि \((.*?)\):', line)
             if condition:
-                condition_eval = replace_sanskrit_numerals(condition.group(1))
-                for var in variables:
-                    condition_eval = condition_eval.replace(var, str(variables[var]))
-                if eval(condition_eval):
+                condition_eval = condition.group(1)
+                # Evaluate the condition using the custom evaluate_condition function
+                if evaluate_condition(condition_eval):
                     i += 1
                     line = lines[i].strip()
                     match = re.match(r'लिखतु\("(.*?)"\);', line)

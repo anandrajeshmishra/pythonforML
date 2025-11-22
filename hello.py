@@ -1,1 +1,1 @@
-print("kya haal hai guru");
+print("kya haal hai guru")
